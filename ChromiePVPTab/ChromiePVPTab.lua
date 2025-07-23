@@ -1,14 +1,14 @@
-local ArenaQueue = {}
-ArenaQueue.frame = nil
-ArenaQueue.tab = nil
-ArenaQueue.tabID = nil
+local ChromiePVPTab = {}
+ChromiePVPTab.frame = nil
+ChromiePVPTab.tab = nil
+ChromiePVPTab.tabID = nil
 
-ArenaQueueSettings = ArenaQueueSettings or {
-    arenaAnnouncements = true,
-    bgAnnouncements = true,
+ChromiePVPTabSettings = ChromiePVPTabSettings or {
+    arenaAnnouncements = false,
+    bgAnnouncements = false,
 }
 
-function ArenaQueue:SetTab(id)
+function ChromiePVPTab:SetTab(id)
     PanelTemplates_SetTab(PVPParentFrame, id)
     PVPFrame:Hide()
     PVPBattlegroundFrame:Hide()
@@ -23,7 +23,7 @@ function ArenaQueue:SetTab(id)
     end
 end
 
-function ArenaQueue:Initialize()
+function ChromiePVPTab:Initialize()
     if not PVPParentFrame then return end
     self:CreateArenaTab()
     self:CreateArenaFrame()
@@ -31,7 +31,7 @@ function ArenaQueue:Initialize()
     self:SetTab(1)
 end
 
-function ArenaQueue:CreateArenaTab()
+function ChromiePVPTab:CreateArenaTab()
     PVPParentFrame.numTabs = (PVPParentFrame.numTabs or 2) + 1
     self.tabID = PVPParentFrame.numTabs
     local tabName = "PVPParentFrameTab" .. self.tabID
@@ -43,28 +43,26 @@ function ArenaQueue:CreateArenaTab()
     tab:SetPoint("LEFT", _G["PVPParentFrameTab" .. (self.tabID - 1)], "RIGHT", -15, 0)
 end
 
--- Detect if ElvUI or other UI replacements are active
-function ArenaQueue:IsUIReplacement()
-    -- Check for ElvUI/TukUI
+-- Detect if ElvUI is running
+function ChromiePVPTab:IsUIReplacement()
     if ElvUI then return true end
     if TukUI then return true end
     -- Check if PortraitFrameTemplate actually exists
-    local testFrame = pcall(CreateFrame, "Frame", "ArenaQueueTestFrame", UIParent, "PortraitFrameTemplate")
-    if testFrame and _G["ArenaQueueTestFrame"] then
-        _G["ArenaQueueTestFrame"]:Hide()
-        _G["ArenaQueueTestFrame"] = nil
+    local success, testFrame = pcall(CreateFrame, "Frame", "ChromiePVPTabTestFrame", UIParent, "PortraitFrameTemplate")
+    if success and testFrame then
+        testFrame:Hide()
+        testFrame = nil  -- or testFrame:SetParent(nil) for proper cleanup
         return false
     end
     return true -- Assume UI replacement if template test failed
 end
 
--- Create the frame content with automatic UI replacement detection.
-function ArenaQueue:CreateArenaFrame()
+function ChromiePVPTab:CreateArenaFrame()
     local frame
     local useBasicFrame = self:IsUIReplacement()
     if useBasicFrame then
         -- Fallback for ElvUI/UI replacements - create basic frame
-        frame = CreateFrame("Frame", "ArenaQueueFrame", PVPParentFrame)
+        frame = CreateFrame("Frame", "ChromiePVPTabFrame", PVPParentFrame)
         -- Set basic properties
         frame:SetPoint("TOPLEFT", PVPFrame, "TOPLEFT", 14, -14)
         frame:SetSize(338, 422)
@@ -82,21 +80,16 @@ function ArenaQueue:CreateArenaFrame()
         self:Print("Using basic frame (UI replacement detected)")
     else
         -- Use the PortraitFrameTemplate when available
-        frame = CreateFrame("Frame", "ArenaQueueFrame", PVPParentFrame, "PortraitFrameTemplate")
+        frame = CreateFrame("Frame", "ChromiePVPTabFrame", PVPParentFrame, "PortraitFrameTemplate")
         frame:SetPoint("TOPLEFT", PVPFrame, "TOPLEFT", 14, -14)
         frame:SetSize(338, 422)
         frame:Hide()
-
-        -- Hide the close button
         local closeButton = _G[frame:GetName() .. "CloseButton"]
         if closeButton then closeButton:Hide() end
-
         local portrait = _G[frame:GetName() .. "Portrait"]
         if portrait then
-            -- Use SetPortraitToTexture for static icons in 3.3.5a
             SetPortraitToTexture(portrait, "Interface\\Icons\\inv_staff_99")
         end
-        -- Set the title 
         local titleText = _G[frame:GetName() .. "TitleText"]
         if titleText then
             titleText:SetText("Chromiecraft PVP Tab")
@@ -109,66 +102,67 @@ function ArenaQueue:CreateArenaFrame()
     self:Create3v3SoloSection(frame)
 end
 
-function ArenaQueue:CreateSettingsSection(parent)
+function ChromiePVPTab:CreateSettingsSection(parent)
     local yOffset = -70 -- Position for the first checkbox.
 
     -- Arena Announcer Checkbox
-    local arenaCheck = CreateFrame("CheckButton", "ArenaQueueArenaAnnouncerCheck", parent, "UICheckButtonTemplate")
+    local arenaCheck = CreateFrame("CheckButton", "ChromiePVPTabArenaAnnouncerCheck", parent, "UICheckButtonTemplate")
     arenaCheck:SetSize(24, 24)
     arenaCheck:SetPoint("TOPLEFT", parent, "TOPLEFT", 30, yOffset)
     _G[arenaCheck:GetName() .. "Text"]:SetText("Arena System Announcements")
     -- Set the checkbox state from saved variables.
-    arenaCheck:SetChecked(ArenaQueueSettings.arenaAnnouncements)
+    arenaCheck:SetChecked(ChromiePVPTabSettings.arenaAnnouncements)
 
     arenaCheck:SetScript("OnClick", function(self)
         if self:GetChecked() then
-            ArenaQueueSettings.arenaAnnouncements = true
+            ChromiePVPTabSettings.arenaAnnouncements = true
             SendChatMessage(".settings announcer arena on", "SAY")
             else
-            ArenaQueueSettings.arenaAnnouncements = false
+            ChromiePVPTabSettings.arenaAnnouncements = false
             SendChatMessage(".settings announcer arena off", "SAY")
         end
     end)
 
     -- Battleground Announcer Checkbox
-    local bgCheck = CreateFrame("CheckButton", "ArenaQueueBGAnnouncerCheck", parent, "UICheckButtonTemplate")
+    local bgCheck = CreateFrame("CheckButton", "ChromiePVPTabBGAnnouncerCheck", parent, "UICheckButtonTemplate")
     bgCheck:SetSize(24, 24)
     bgCheck:SetPoint("TOPLEFT", arenaCheck, "BOTTOMLEFT", 0, -10) -- Anchor below the first checkbox
     _G[bgCheck:GetName() .. "Text"]:SetText("Battleground System Announcements")
 
     -- Set the checkbox state from saved variables.
-    bgCheck:SetChecked(ArenaQueueSettings.bgAnnouncements)
+    bgCheck:SetChecked(ChromiePVPTabSettings.bgAnnouncements)
 
     bgCheck:SetScript("OnClick", function(self)
         if self:GetChecked() then
-            ArenaQueueSettings.bgAnnouncements = true
+            ChromiePVPTabSettings.bgAnnouncements = true
             SendChatMessage(".settings announcer bg on", "SAY")
             else
-            ArenaQueueSettings.bgAnnouncements = false
+            ChromiePVPTabSettings.bgAnnouncements = false
             SendChatMessage(".settings announcer bg off", "SAY")
         end
     end)
 end
 
-function ArenaQueue:CreateSkirmishSection(parent)
-    local yOffset = -140 -- Was -80
+function ChromiePVPTab:CreateSkirmishSection(parent)
+    local yOffset = -140
     local header = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     header:SetPoint("TOPLEFT", parent, "TOPLEFT", 30, yOffset)
     header:SetText("Skirmish")
     header:SetTextColor(1, 0.82, 0)
     local desc = parent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
     desc:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -5)
-    desc:SetText("Practice arena matches (no rating)")
+    desc:SetText("Unrated arena matches")
     desc:SetTextColor(0.8, 0.8, 0.8)
     local button = CreateFrame("Button", "SkirmishQueueButton", parent, "UIPanelButtonTemplate")
     button:SetSize(120, 22)
     button:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -10)
     button:SetText("Join Skirmish (2v2)")
-    button:SetScript("OnClick", function() ArenaQueue:QueueForArena("skirmish") end)
+    button:SetScript("OnClick", function() ChromiePVPTab:QueueForArena("skirmish") end)
+    self:CreateCrossfactionSection(parent, yOffset)
 end
 
-function ArenaQueue:Create1v1Section(parent)
-    local yOffset = -220 -- Was -180
+function ChromiePVPTab:Create1v1Section(parent)
+    local yOffset = -240
     local header = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     header:SetPoint("TOPLEFT", parent, "TOPLEFT", 30, yOffset)
     header:SetText("1v1 Arena")
@@ -181,15 +175,146 @@ function ArenaQueue:Create1v1Section(parent)
     ratedButton:SetSize(120, 22)
     ratedButton:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -15)
     ratedButton:SetText("1v1 Rated")
-    ratedButton:SetScript("OnClick", function() ArenaQueue:QueueForArena("1v1rated") end)
+    ratedButton:SetScript("OnClick", function() ChromiePVPTab:QueueForArena("1v1rated") end)
     local unratedButton = CreateFrame("Button", "Arena1v1UnratedQueueButton", parent, "UIPanelButtonTemplate")
     unratedButton:SetSize(120, 22)
     unratedButton:SetPoint("LEFT", ratedButton, "RIGHT", 10, 0)
     unratedButton:SetText("1v1 Unrated")
-    unratedButton:SetScript("OnClick", function() ArenaQueue:QueueForArena("1v1unrated") end)
+    unratedButton:SetScript("OnClick", function() ChromiePVPTab:QueueForArena("1v1unrated") end)
 end
 
-function ArenaQueue:Create3v3SoloSection(parent)
+function ChromiePVPTab:CreateCrossfactionSection(parent, yOffset)
+    local raceHeader = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    raceHeader:SetPoint("TOPLEFT", parent, "TOPLEFT", 180, yOffset)
+    raceHeader:SetText("Crossfaction BG Race")
+    raceHeader:SetTextColor(1, 0.82, 0)
+
+    local raceDropdown = CreateFrame("Frame", "ChromiePVPTabRaceDropdown", parent, "UIDropDownMenuTemplate")
+    raceDropdown:SetPoint("TOPLEFT", raceHeader, "BOTTOMLEFT", -20, -22)
+    UIDropDownMenu_SetWidth(raceDropdown, 120)
+    -- Function to get available races based on player's class, race, and gender
+    local function GetAvailableRaces()
+        local playerClass = select(2, UnitClass("player"))
+        local playerGender = UnitSex("player")
+        local isFemale = (playerGender == 3) -- 2 = Male, 3 = Female
+        -- Copied combinations from: https://github.com/azerothcore/mod-cfbg/
+        local classRaceMapping = {
+            ["WARRIOR"] = {
+                alliance = {"human", "dwarf", "gnome", "draenei"},
+                horde = {"orc", "tauren", "troll"}
+            },
+            ["PALADIN"] = {
+                alliance = {"human", "dwarf", "draenei"},
+                horde = {"bloodelf"}
+            },
+            ["HUNTER"] = {
+                alliance = {"dwarf", "draenei"},
+                horde = {"orc", "tauren", "troll", "bloodelf"}
+            },
+            ["ROGUE"] = {
+                alliance = {"human", "dwarf", "gnome"},
+                horde = {"orc", "troll", "bloodelf"}
+            },
+            ["PRIEST"] = {
+                alliance = {"human", "dwarf", "draenei"},
+                horde = {"troll", "bloodelf"}
+            },
+            ["DEATHKNIGHT"] = {
+                alliance = {"human", "dwarf", "gnome", "draenei"},
+                horde = {"orc", "tauren", "troll", "bloodelf"}
+            },
+            ["SHAMAN"] = {
+                alliance = {"draenei"},
+                horde = {"orc", "tauren", "troll"}
+            },
+            ["MAGE"] = {
+                alliance = {"human", "gnome"},
+                horde = {"bloodelf", "troll"}
+            },
+            ["WARLOCK"] = {
+                alliance = {"human", "gnome"},
+                horde = {"orc", "bloodelf"}
+            },
+            ["DRUID"] = {
+                alliance = {"human"},
+                horde = {"tauren"}
+            }
+        }
+        local faction, _ = UnitFactionGroup("player")
+        local isAlliance = (faction == "Alliance")
+        -- Races that don't have female models
+        local noFemaleModels = {
+            ["troll"] = true,
+            ["dwarf"] = true
+        }
+
+        -- Get available crossfaction races
+        local availableRaces = {}
+        if classRaceMapping[playerClass] then
+            local targetFaction = isAlliance and "horde" or "alliance"
+            local baseRaces = classRaceMapping[playerClass][targetFaction]
+            if baseRaces then
+                -- Filter out races that don't support the player's gender
+                for _, race in ipairs(baseRaces) do
+                    if not isFemale or not noFemaleModels[race] then
+                        table.insert(availableRaces, race)
+                    end
+                end
+            end
+        end
+
+        return availableRaces
+    end
+
+    -- Display of names in the dropdownmenu. Night Elfes and Undeads are missing from the module
+    local raceDisplayNames = {
+        ["human"]       =   "Human",
+        ["dwarf"]       =   "Dwarf",
+        ["gnome"]       =   "Gnome",
+        ["draenei"]     =   "Draenei",
+        ["orc"]         =    "Orc",
+        ["bloodelf"]    =   "Blood Elf",
+        ["troll"]       =   "Troll",
+        ["tauren"]      =   "Tauren",
+    }
+
+    UIDropDownMenu_Initialize(raceDropdown, function(self, level)
+        local availableRaces = GetAvailableRaces()
+        if #availableRaces == 0 then
+            local info = UIDropDownMenu_CreateInfo()
+            info.text = "No crossfaction races available"
+            info.disabled = true
+            UIDropDownMenu_AddButton(info, level)
+        else
+            for i, raceKey in ipairs(availableRaces) do
+                local info = UIDropDownMenu_CreateInfo()
+                info.text = raceDisplayNames[raceKey]
+                info.value = raceKey
+                info.func = function()
+                    ChromiePVPTabSettings.cfbgRace = raceKey
+                    UIDropDownMenu_SetSelectedValue(raceDropdown, raceKey)
+                    SendChatMessage(".cfbg race " .. raceKey, "SAY")
+                    ChromiePVPTab:Print("race set to : " .. raceDisplayNames[raceKey] .. " (%s is a serverside visual bug)")
+                end
+                info.checked = (ChromiePVPTabSettings.cfbgRace == raceKey)
+                UIDropDownMenu_AddButton(info, level)
+            end
+        end
+    end)
+
+    -- Set default value if not set or invalid
+    local availableRaces = GetAvailableRaces()
+    if not ChromiePVPTabSettings.cfbgRace or not tContains(availableRaces, ChromiePVPTabSettings.cfbgRace) then
+        if #availableRaces > 0 then
+            ChromiePVPTabSettings.cfbgRace = availableRaces[1]
+        end
+    end
+    if ChromiePVPTabSettings.cfbgRace then
+        UIDropDownMenu_SetSelectedValue(raceDropdown, ChromiePVPTabSettings.cfbgRace)
+    end
+end
+
+function ChromiePVPTab:Create3v3SoloSection(parent)
     local yOffset = -320 -- Was -280
     local header = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     header:SetPoint("TOPLEFT", parent, "TOPLEFT", 30, yOffset)
@@ -206,21 +331,21 @@ function ArenaQueue:Create3v3SoloSection(parent)
     ratedButton:SetSize(140, 22)
     ratedButton:SetPoint("TOPLEFT", roleInfo, "BOTTOMLEFT", 0, -15)
     ratedButton:SetText("3v3 Solo Rated")
-    ratedButton:SetScript("OnClick", function() ArenaQueue:QueueForArena("3v3solorated") end)
+    ratedButton:SetScript("OnClick", function() ChromiePVPTab:QueueForArena("3v3solorated") end)
     local unratedButton = CreateFrame("Button", "Arena3v3SoloUnratedQueueButton", parent, "UIPanelButtonTemplate")
     unratedButton:SetSize(140, 22)
     unratedButton:SetPoint("LEFT", ratedButton, "RIGHT", 10, 0)
     unratedButton:SetText("3v3 Solo Unrated")
-    unratedButton:SetScript("OnClick", function() ArenaQueue:QueueForArena("3v3solounrated") end)
+    unratedButton:SetScript("OnClick", function() ChromiePVPTab:QueueForArena("3v3solounrated") end)
 end
 
-function ArenaQueue:HookTabClicks()
+function ChromiePVPTab:HookTabClicks()
     PVPParentFrameTab1:SetScript("OnClick", function() self:SetTab(1) end)
     PVPParentFrameTab2:SetScript("OnClick", function() self:SetTab(2) end)
     self.tab:SetScript("OnClick", function() self:SetTab(self.tabID) end)
 end
 
-function ArenaQueue:QueueForArena(arenaType)
+function ChromiePVPTab:QueueForArena(arenaType)
     if arenaType == "skirmish" then
         SendChatMessage(".lla queue", "SAY")
     elseif arenaType == "1v1rated" then
@@ -234,47 +359,51 @@ function ArenaQueue:QueueForArena(arenaType)
     end
 end
 
-function ArenaQueue:Print(msg)
-    DEFAULT_CHAT_FRAME:AddMessage("|cff00ff00[ArenaQueue]|r " .. msg)
+function ChromiePVPTab:Print(msg)
+    DEFAULT_CHAT_FRAME:AddMessage("|cff00ff00[ChromiePVPTab]|r " .. msg)
 end
 
-function ArenaQueue:ApplySavedSettings()
-    if ArenaQueueSettings.arenaAnnouncements then
+function ChromiePVPTab:ApplySavedSettings()
+    if ChromiePVPTabSettings.arenaAnnouncements then
         SendChatMessage(".settings announcer arena on", "SAY")
     else
         SendChatMessage(".settings announcer arena off", "SAY")
     end
 
-    if ArenaQueueSettings.bgAnnouncements then
+    if ChromiePVPTabSettings.bgAnnouncements then
         SendChatMessage(".settings announcer bg on", "SAY")
     else
         SendChatMessage(".settings announcer bg off", "SAY")
+    end
+
+    if ChromiePVPTabSettings.cfbgRace then
+        SendChatMessage(".cfbg race " .. ChromiePVPTabSettings.cfbgRace, "SAY")
     end
 end
 
 
 PVPParentFrame_SetTab = function(frame, id)
-    ArenaQueue:SetTab(id)
+    ChromiePVPTab:SetTab(id)
 end
 
---[[SLASH_ARENAQUEUE1 = "/arenaqueue"
-SLASH_ARENAQUEUE2 = "/aq"
-SlashCmdList["ARENAQUEUE"] = function(msg)
+--[[SLASH_CHROMIEPVPTAB1 = "/chromiepvptab" --For Debugging
+SLASH_CHROMIEPVPTAB2 = "/cpt"
+SlashCmdList["CHROMIEPVPTAB"] = function(msg)
     if msg == "show" then
-        if not ArenaQueue.tabID then return end
+        if not ChromiePVPTab.tabID then return end
         ShowUIPanel(PVPParentFrame)
-        PVPParentFrame_SetTab(PVPParentFrame, ArenaQueue.tabID)
+        PVPParentFrame_SetTab(PVPParentFrame, ChromiePVPTab.tabID)
     elseif msg == "test" then
-        ArenaQueue:Print("Arena Queue addon is working!")
+        ChromiePVPTab:Print("ChromiePVP Tab addon is working!")
     else
-        ArenaQueue:Print("Commands: /aq show, /aq test")
+        ChromiePVPTab:Print("Commands: /cpt show, /cpt test")
     end
 end]]
 
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:SetScript("OnEvent", function(self, event, ...)
-    ArenaQueue:Initialize()
-    ArenaQueue:ApplySavedSettings() -- Apply settings right after initialization.
+    ChromiePVPTab:Initialize()
+    ChromiePVPTab:ApplySavedSettings() -- Apply settings right after initialization.
     self:UnregisterEvent("PLAYER_LOGIN")
 end)
