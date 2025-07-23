@@ -17,4 +17,6 @@ The announcement settings will persist between game sessions. Designed for the s
 
 ```.settings announcer arena/bg on/off (announcements)```
 
+```.cfbg race #race```
+
 
