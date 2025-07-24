@@ -4,7 +4,7 @@ Relies on Tsoukies [ClassicAPI](https://gitlab.com/Tsoukie/classicapi/-/tree/mai
 
 ## Description
 
-This addon serves as a graphical wrapper for server-side commands, eliminating the need to manually type chat commands. In addition it will display the number of honor kills needed for your next vanilla pvp title. 
+This addon serves as a graphical wrapper for server-side commands, eliminating the need to manually type chat commands. In addition it will display the amount of honor kills needed for your next vanilla pvp title. 
 
 The announcement settings will persist between game sessions. Designed specifically for the server Chromiecraft, but works on any server with the respective commands/features enabled.
 
