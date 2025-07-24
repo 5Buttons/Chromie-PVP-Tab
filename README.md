@@ -4,6 +4,10 @@ This addon serves as a graphical wrapper for server-side commands, eliminating t
 
 The announcement settings will persist between game sessions. Designed for the server Chromiecraft, but works on any server with the respective commands enabled.
 
+## Important
+
+Currently you need Tsoukies ClassicAPI addon for the frame template otherwise it wont have a texture: https://gitlab.com/Tsoukie/classicapi/-/tree/main 
+
 <img width="484" height="595" alt="image" src="https://github.com/user-attachments/assets/8e235882-b528-4396-9ec1-f21bcc79462f" />
 
 
