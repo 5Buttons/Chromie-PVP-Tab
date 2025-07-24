@@ -6,7 +6,7 @@ The announcement settings will persist between game sessions. Designed for the s
 
 ## Important
 
-Currently you need Tsoukies ClassicAPI addon for the frame template otherwise it wont have a texture: https://gitlab.com/Tsoukie/classicapi/-/tree/main 
+Currently you need Tsoukies [ClassicAPI](https://gitlab.com/Tsoukie/classicapi/-/tree/main) addon for the frame template otherwise it wont have a texture: https://gitlab.com/Tsoukie/classicapi/-/releases/permalink/latest
 
 <img width="484" height="595" alt="image" src="https://github.com/user-attachments/assets/8e235882-b528-4396-9ec1-f21bcc79462f" />
 
