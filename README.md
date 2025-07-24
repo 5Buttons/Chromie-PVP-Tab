@@ -6,7 +6,7 @@ The announcement settings will persist between game sessions. Designed for the s
 
 ## Important
 
-Relies on Tsoukies [ClassicAPI](https://gitlab.com/Tsoukie/classicapi/-/tree/main) for the frame template. You will need it and can download it here: https://gitlab.com/Tsoukie/classicapi/-/releases/permalink/latest
+Relies on Tsoukies [ClassicAPI](https://gitlab.com/Tsoukie/classicapi/-/tree/main) for the frame template. You will need it and can download it here: https://gitlab.com/Tsoukie/classicapi/-/archive/1.4/classicapi-1.4.zip
 
 <img width="443" height="582" alt="image" src="https://github.com/user-attachments/assets/4b7f1690-5911-4374-83bf-f47cf64fa415" />
 
