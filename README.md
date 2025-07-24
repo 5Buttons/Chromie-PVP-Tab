@@ -4,7 +4,12 @@ This addon serves as a graphical wrapper for server-side commands, eliminating t
 
 The announcement settings will persist between game sessions. Designed for the server Chromiecraft, but works on any server with the respective commands enabled.
 
-<img width="484" height="595" alt="image" src="https://github.com/user-attachments/assets/8e235882-b528-4396-9ec1-f21bcc79462f" />
+## Important
+
+I used Tsoukies [ClassicAPI](https://gitlab.com/Tsoukie/classicapi/-/tree/main) for the frame template. You will need it and can download it here: https://gitlab.com/Tsoukie/classicapi/-/releases/permalink/latest
+
+<img width="443" height="582" alt="image" src="https://github.com/user-attachments/assets/4b7f1690-5911-4374-83bf-f47cf64fa415" />
+
 
 
 ## Requirements: Server must have the following commands enabled:
