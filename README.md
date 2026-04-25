@@ -1,17 +1,13 @@
-## ❗Important❗
-
-Relies on Tsoukies [ClassicAPI](https://gitlab.com/Tsoukie/classicapi/-/tree/main) for the frame template. You will need it and can download it here: 
-
-https://gitlab.com/Tsoukie/classicapi/-/archive/1.4/classicapi-1.4.zip
-
 ## Description
 
-This addon serves as a graphical wrapper for server-side commands, eliminating the need to manually type chat commands. In addition it will display the amount of honor kills needed for your next vanilla pvp title. 
+This addon serves as a graphical wrapper for server-side commands and progress tracker for vanilla pvp titles, eliminating the need to manually type chat commands. 
 
 The announcement settings will persist between game sessions. Designed specifically for the server Chromiecraft, but works on any server with the respective commands/features enabled.
 
+New with v1.4: ElvUI support:
 
 <img width="443" height="582" alt="image" src="https://github.com/user-attachments/assets/4b7f1690-5911-4374-83bf-f47cf64fa415" />
+<img width="448" height="501" alt="image" src="https://github.com/user-attachments/assets/08b0fc76-694e-45d2-b017-27771f1c406d" />
 
 
 
