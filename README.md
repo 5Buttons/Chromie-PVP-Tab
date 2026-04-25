@@ -1,9 +1,3 @@
-## ❗Important❗
-
-Relies on Tsoukies [ClassicAPI](https://gitlab.com/Tsoukie/classicapi/-/tree/main) for the frame template. You will need it and can download it here: 
-
-https://gitlab.com/Tsoukie/classicapi/-/archive/1.4/classicapi-1.4.zip
-
 ## Description
 
 This addon serves as a graphical wrapper for server-side commands, eliminating the need to manually type chat commands. In addition it will display the amount of honor kills needed for your next vanilla pvp title. 
