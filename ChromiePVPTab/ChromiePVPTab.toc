@@ -2,7 +2,7 @@
 ## Title: Chromie PVP Tab
 ## Notes: Adds a Chromie tab to the PVP frame for queuing arena matches and enabling/disabling pvp announcements
 ## Author: Fivebuttons
-## Version: 1.3
+## Version: 1.4
 ## SavedVariables: ChromiePVPTabSettings
 
 ChromiePVPTab.xml

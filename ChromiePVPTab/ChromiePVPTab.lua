@@ -208,21 +208,21 @@ function ChromiePVPTab:CreateArenaFrame()
     if useBasicFrame then
         -- Fallback for ElvUI/UI replacements - create basic frame
         frame = CreateFrame("Frame", "ChromiePVPTabFrame", PVPParentFrame)
-        -- Set basic properties
         frame:SetPoint("TOPLEFT", PVPFrame, "TOPLEFT", 14, -14)
         frame:SetSize(338, 422)
         frame:Hide()
-        -- Create title manually
-        local titleText = frame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-        titleText:SetPoint("TOP", frame, "TOP", 0, -15)
-        titleText:SetText("Chromiecraft PVP Tab")
-        titleText:SetTextColor(1, 0.82, 0)
-        -- Create portrait manually
-        local portrait = frame:CreateTexture(nil, "ARTWORK")
-        portrait:SetSize(60, 60)
-        portrait:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -10)
-        portrait:SetTexture("Interface\\Icons\\inv_staff_99")
-        self:Print("Using basic frame (UI replacement detected)")
+        if ElvUI then
+            self:ApplyElvUISkin(frame)
+        else
+            local titleText = frame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+            titleText:SetPoint("TOP", frame, "TOP", 0, -15)
+            titleText:SetText("Chromiecraft PVP Tab")
+            titleText:SetTextColor(1, 0.82, 0)
+            local portrait = frame:CreateTexture(nil, "ARTWORK")
+            portrait:SetSize(60, 60)
+            portrait:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -10)
+            portrait:SetTexture("Interface\\Icons\\inv_staff_99")
+        end
     else
         frame = CreateFrame("Frame", "ChromiePVPTabFrame", PVPParentFrame, "ChromiePVPFrameTemplate")
         frame:SetPoint("TOPLEFT", PVPFrame, "TOPLEFT", 14, -14)
@@ -245,6 +245,71 @@ function ChromiePVPTab:CreateArenaFrame()
     self:CreateSkirmishSection(frame)
     self:Create1v1Section(frame)
     self:Create3v3SoloSection(frame)
+    if ElvUI and useBasicFrame then
+        self:SkinElvUIWidgets()
+    end
+end
+
+function ChromiePVPTab:ApplyElvUISkin(frame)
+    frame:StripTextures()
+    frame:SetTemplate("Default", true)
+
+    local titleBar = CreateFrame("Frame", nil, frame)
+    titleBar:SetHeight(22)
+    titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1)
+    titleBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1)
+    titleBar:StripTextures()
+    titleBar:SetTemplate("Default", true)
+
+    local icon = titleBar:CreateTexture(nil, "OVERLAY")
+    icon:SetSize(16, 16)
+    icon:SetPoint("LEFT", titleBar, "LEFT", 4, 0)
+    icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    icon:SetTexture("Interface\\Icons\\inv_staff_99")
+
+    local titleText = titleBar:CreateFontString(nil, "OVERLAY")
+    titleText:SetFontObject(GameFontNormal)
+    titleText:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+    titleText:SetText("Chromiecraft PVP Tab")
+end
+
+function ChromiePVPTab:SkinElvUIWidgets()
+    local E = unpack(ElvUI)
+    local S = E:GetModule('Skins')
+
+    for _, name in ipairs({
+        "SkirmishQueueButton",
+        "Arena1v1RatedQueueButton",
+        "Arena1v1UnratedQueueButton",
+        "Arena3v3SoloRatedQueueButton",
+        "Arena3v3SoloUnratedQueueButton",
+    }) do
+        local btn = _G[name]
+        if btn then pcall(S.HandleButton, S, btn) end
+    end
+
+    for _, name in ipairs({
+        "ChromiePVPTabArenaAnnouncerCheck",
+        "ChromiePVPTabBGAnnouncerCheck",
+    }) do
+        local cb = _G[name]
+        if cb then pcall(S.HandleCheckBox, S, cb) end
+    end
+
+    local dropdown = _G["ChromiePVPTabRaceDropdown"]
+    if dropdown then pcall(S.HandleDropDownBox, S, dropdown) end
+
+    if self.tab then pcall(S.HandleTab, S, self.tab) end
+
+    if self.progressBar then
+        local bg = self.progressBar.bg
+        if bg then
+            bg:StripTextures()
+            bg:SetTemplate("Default", true)
+        end
+        local bar = self.progressBar.bar
+        if bar then pcall(S.HandleStatusBar, S, bar, {1, 0.7, 0}) end
+    end
 end
 
 function ChromiePVPTab:CreateSettingsSection(parent)
