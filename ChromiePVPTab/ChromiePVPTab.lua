@@ -101,18 +101,11 @@ function ChromiePVPTab:CreateArenaTab()
     tab:SetPoint("LEFT", _G["PVPParentFrameTab" .. (self.tabID - 1)], "RIGHT", -15, 0)
 end
 
--- Detect if ElvUI is running
+-- Detect if a UI replacement (ElvUI/TukUI) is active
 function ChromiePVPTab:IsUIReplacement()
     if ElvUI then return true end
     if TukUI then return true end
-    -- Check if PortraitFrameTemplate actually exists
-    local success, testFrame = pcall(CreateFrame, "Frame", "ChromiePVPTabTestFrame", UIParent, "PortraitFrameTemplate")
-    if success and testFrame then
-        testFrame:Hide()
-        testFrame = nil  -- or testFrame:SetParent(nil) for proper cleanup
-        return false
-    end
-    return true -- Assume UI replacement if template test failed
+    return false
 end
 
 function ChromiePVPTab:CreateProgressBar(parent)
@@ -231,8 +224,7 @@ function ChromiePVPTab:CreateArenaFrame()
         portrait:SetTexture("Interface\\Icons\\inv_staff_99")
         self:Print("Using basic frame (UI replacement detected)")
     else
-        -- Use the PortraitFrameTemplate when available
-        frame = CreateFrame("Frame", "ChromiePVPTabFrame", PVPParentFrame, "PortraitFrameTemplate")
+        frame = CreateFrame("Frame", "ChromiePVPTabFrame", PVPParentFrame, "ChromiePVPFrameTemplate")
         frame:SetPoint("TOPLEFT", PVPFrame, "TOPLEFT", 14, -14)
         frame:SetSize(338, 422)
         frame:Hide()
