@@ -4,10 +4,11 @@ This addon serves as a graphical wrapper for server-side commands and progress t
 
 The announcement settings will persist between game sessions. Designed specifically for the server Chromiecraft, but works on any server with the respective commands/features enabled.
 
-New with v1.4: ElvUI support:
+V1.5 new layout
 
-<img width="443" height="582" alt="image" src="https://github.com/user-attachments/assets/4b7f1690-5911-4374-83bf-f47cf64fa415" />
-<img width="448" height="501" alt="image" src="https://github.com/user-attachments/assets/08b0fc76-694e-45d2-b017-27771f1c406d" />
+<img width="461" height="595" alt="image" src="https://github.com/user-attachments/assets/9663c899-4a11-4cb4-8fc4-9ab066085d17" />
+
+
 
 
 
