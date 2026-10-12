@@ -4,11 +4,6 @@ ChromiePVPTab.tab = nil
 ChromiePVPTab.tabID = nil
 ChromiePVPTab.progressBar = nil
 
-ChromiePVPTabSettings = ChromiePVPTabSettings or {
-    arenaAnnouncements = false,
-    bgAnnouncements = false,
-}
-
 -- Honor title thresholds
 local PvPTitles = {
     Rank_1 = 250,
@@ -226,7 +221,6 @@ function ChromiePVPTab:CreateArenaFrame()
     else
         frame = CreateFrame("Frame", "ChromiePVPTabFrame", PVPParentFrame, "ChromiePVPFrameTemplate")
         frame:SetPoint("TOPLEFT", PVPFrame, "TOPLEFT", 14, -14)
-        frame:SetSize(338, 422)
         frame:Hide()
         local closeButton = _G[frame:GetName() .. "CloseButton"]
         if closeButton then closeButton:Hide() end
@@ -241,10 +235,8 @@ function ChromiePVPTab:CreateArenaFrame()
     end
     self.frame = frame
     self:CreateProgressBar(frame)
+    self:CreateArenaSection(frame)
     self:CreateSettingsSection(frame)
-    self:CreateSkirmishSection(frame)
-    self:Create1v1Section(frame)
-    self:Create3v3SoloSection(frame)
     if ElvUI and useBasicFrame then
         self:SkinElvUIWidgets()
     end
@@ -278,11 +270,11 @@ function ChromiePVPTab:SkinElvUIWidgets()
     local S = E:GetModule('Skins')
 
     for _, name in ipairs({
-        "SkirmishQueueButton",
-        "Arena1v1RatedQueueButton",
-        "Arena1v1UnratedQueueButton",
-        "Arena3v3SoloRatedQueueButton",
-        "Arena3v3SoloUnratedQueueButton",
+        "ChromiePVPTabSkirmishButton",
+        "ChromiePVPTab1v1RatedButton",
+        "ChromiePVPTab1v1UnratedButton",
+        "ChromiePVPTabSolo3v3RatedButton",
+        "ChromiePVPTabSolo3v3UnratedButton",
     }) do
         local btn = _G[name]
         if btn then pcall(S.HandleButton, S, btn) end
@@ -312,16 +304,91 @@ function ChromiePVPTab:SkinElvUIWidgets()
     end
 end
 
+local function SetAnnouncerState(check, label, value)
+    if not check.notSetMark then
+        local holder = CreateFrame("Frame", nil, check)
+        holder:SetAllPoints()
+        local mark = holder:CreateTexture(nil, "OVERLAY")
+        mark:SetSize(10, 3)
+        mark:SetPoint("CENTER")
+        mark:SetTexture("Interface\\Buttons\\WHITE8X8")
+        mark:SetVertexColor(1, 0.82, 0)
+        check.notSetMark = holder
+    end
+    if value == nil then
+        label = label .. " |cff808080(not set)|r"
+        check.notSetMark:Show()
+    else
+        check.notSetMark:Hide()
+    end
+    _G[check:GetName() .. "Text"]:SetText(label)
+end
+
+local BUTTON_WIDTH = 80
+local BUTTON_GAP = 6
+
+local function CreateSectionHeader(parent, text, y)
+    local header = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    header:SetPoint("TOPLEFT", parent, "TOPLEFT", 24, y)
+    header:SetText(text)
+    local line = parent:CreateTexture(nil, "ARTWORK")
+    line:SetHeight(1)
+    line:SetPoint("TOPLEFT", parent, "TOPLEFT", 24, y - 16)
+    line:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -20, y - 16)
+    line:SetTexture("Interface\\Buttons\\WHITE8X8")
+    line:SetVertexColor(1, 0.82, 0, 0.4)
+end
+
+local function CreateQueueRow(parent, y, title, desc)
+    local titleText = parent:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    titleText:SetPoint("TOPLEFT", parent, "TOPLEFT", 30, y)
+    titleText:SetText(title)
+    local descText = parent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    descText:SetPoint("TOPLEFT", titleText, "BOTTOMLEFT", 0, -3)
+    descText:SetText(desc)
+    descText:SetTextColor(0.8, 0.8, 0.8)
+end
+
+local function CreateQueueButton(name, parent, text, width, arenaType)
+    local button = CreateFrame("Button", name, parent, "UIPanelButtonTemplate")
+    button:SetSize(width, 22)
+    button:SetText(text)
+    button:SetScript("OnClick", function() ChromiePVPTab:QueueForArena(arenaType) end)
+    return button
+end
+
+local function CreateRatedButtons(parent, y, namePrefix, ratedType, unratedType)
+    local unrated = CreateQueueButton(namePrefix .. "UnratedButton", parent, "Unrated", BUTTON_WIDTH, unratedType)
+    unrated:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -20, y)
+    local rated = CreateQueueButton(namePrefix .. "RatedButton", parent, "Rated", BUTTON_WIDTH, ratedType)
+    rated:SetPoint("RIGHT", unrated, "LEFT", -BUTTON_GAP, 0)
+end
+
+function ChromiePVPTab:CreateArenaSection(parent)
+    CreateSectionHeader(parent, "Arena", -112)
+
+    CreateQueueRow(parent, -136, "Skirmish (2v2)", "Unrated arena matches")
+    local joinWidth = BUTTON_WIDTH * 2 + BUTTON_GAP
+    local join = CreateQueueButton("ChromiePVPTabSkirmishButton", parent, "Join", joinWidth, "skirmish")
+    join:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -20, -137)
+
+    CreateQueueRow(parent, -180, "1v1 Arena", "1 versus 1 matches")
+    CreateRatedButtons(parent, -181, "ChromiePVPTab1v1", "1v1rated", "1v1unrated")
+
+    CreateQueueRow(parent, -224, "3v3 Solo Queue", "Random teammates")
+    CreateRatedButtons(parent, -225, "ChromiePVPTabSolo3v3", "3v3solorated", "3v3solounrated")
+end
+
 function ChromiePVPTab:CreateSettingsSection(parent)
-    local yOffset = -100 -- Moved down to make room for progress bar
+    CreateSectionHeader(parent, "Settings", -268)
 
     -- Arena Announcer Checkbox
     local arenaCheck = CreateFrame("CheckButton", "ChromiePVPTabArenaAnnouncerCheck", parent, "UICheckButtonTemplate")
     arenaCheck:SetSize(24, 24)
-    arenaCheck:SetPoint("TOPLEFT", parent, "TOPLEFT", 30, yOffset)
-    _G[arenaCheck:GetName() .. "Text"]:SetText("Arena System Announcements")
+    arenaCheck:SetPoint("TOPLEFT", parent, "TOPLEFT", 24, -290)
+    SetAnnouncerState(arenaCheck, "Arena System Announcements", ChromiePVPTabSettings.arenaAnnouncements)
     -- Set the checkbox state from saved variables.
-    arenaCheck:SetChecked(ChromiePVPTabSettings.arenaAnnouncements)
+    arenaCheck:SetChecked(ChromiePVPTabSettings.arenaAnnouncements == true)
 
     arenaCheck:SetScript("OnClick", function(self)
         if self:GetChecked() then
@@ -331,16 +398,17 @@ function ChromiePVPTab:CreateSettingsSection(parent)
             ChromiePVPTabSettings.arenaAnnouncements = false
             SendChatMessage(".settings announcer arena off", "SAY")
         end
+        SetAnnouncerState(self, "Arena System Announcements", ChromiePVPTabSettings.arenaAnnouncements)
     end)
 
     -- Battleground Announcer Checkbox
     local bgCheck = CreateFrame("CheckButton", "ChromiePVPTabBGAnnouncerCheck", parent, "UICheckButtonTemplate")
     bgCheck:SetSize(24, 24)
-    bgCheck:SetPoint("TOPLEFT", arenaCheck, "BOTTOMLEFT", 0, -10) -- Anchor below the first checkbox
-    _G[bgCheck:GetName() .. "Text"]:SetText("Battleground System Announcements")
+    bgCheck:SetPoint("TOPLEFT", arenaCheck, "BOTTOMLEFT", 0, -2) -- Anchor below the first checkbox
+    SetAnnouncerState(bgCheck, "Battleground System Announcements", ChromiePVPTabSettings.bgAnnouncements)
 
     -- Set the checkbox state from saved variables.
-    bgCheck:SetChecked(ChromiePVPTabSettings.bgAnnouncements)
+    bgCheck:SetChecked(ChromiePVPTabSettings.bgAnnouncements == true)
 
     bgCheck:SetScript("OnClick", function(self)
         if self:GetChecked() then
@@ -350,58 +418,20 @@ function ChromiePVPTab:CreateSettingsSection(parent)
             ChromiePVPTabSettings.bgAnnouncements = false
             SendChatMessage(".settings announcer bg off", "SAY")
         end
+        SetAnnouncerState(self, "Battleground System Announcements", ChromiePVPTabSettings.bgAnnouncements)
     end)
+
+    self:CreateCrossfactionSection(parent, -358)
 end
 
-function ChromiePVPTab:CreateSkirmishSection(parent)
-    local yOffset = -170 -- Adjusted for progress bar
-    local header = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    header:SetPoint("TOPLEFT", parent, "TOPLEFT", 30, yOffset)
-    header:SetText("Skirmish")
-    header:SetTextColor(1, 0.82, 0)
-    local desc = parent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    desc:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -5)
-    desc:SetText("Unrated arena matches")
-    desc:SetTextColor(0.8, 0.8, 0.8)
-    local button = CreateFrame("Button", "SkirmishQueueButton", parent, "UIPanelButtonTemplate")
-    button:SetSize(120, 22)
-    button:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -10)
-    button:SetText("Join Skirmish (2v2)")
-    button:SetScript("OnClick", function() ChromiePVPTab:QueueForArena("skirmish") end)
-    self:CreateCrossfactionSection(parent, yOffset)
-end
-
-function ChromiePVPTab:Create1v1Section(parent)
-    local yOffset = -250
-    local header = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    header:SetPoint("TOPLEFT", parent, "TOPLEFT", 30, yOffset)
-    header:SetText("1v1 Arena")
-    header:SetTextColor(1, 0.82, 0)
-    local desc = parent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    desc:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -5)
-    desc:SetText("1 versus 1 arena matches")
-    desc:SetTextColor(0.8, 0.8, 0.8)
-    local ratedButton = CreateFrame("Button", "Arena1v1RatedQueueButton", parent, "UIPanelButtonTemplate")
-    ratedButton:SetSize(120, 22)
-    ratedButton:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -15)
-    ratedButton:SetText("1v1 Rated")
-    ratedButton:SetScript("OnClick", function() ChromiePVPTab:QueueForArena("1v1rated") end)
-    local unratedButton = CreateFrame("Button", "Arena1v1UnratedQueueButton", parent, "UIPanelButtonTemplate")
-    unratedButton:SetSize(120, 22)
-    unratedButton:SetPoint("LEFT", ratedButton, "RIGHT", 10, 0)
-    unratedButton:SetText("1v1 Unrated")
-    unratedButton:SetScript("OnClick", function() ChromiePVPTab:QueueForArena("1v1unrated") end)
-end
-
-function ChromiePVPTab:CreateCrossfactionSection(parent, yOffset)
-    local raceHeader = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    raceHeader:SetPoint("TOPLEFT", parent, "TOPLEFT", 180, yOffset)
-    raceHeader:SetText("Crossfaction BG Race")
-    raceHeader:SetTextColor(1, 0.82, 0)
+function ChromiePVPTab:CreateCrossfactionSection(parent, y)
+    local raceLabel = parent:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    raceLabel:SetPoint("LEFT", parent, "TOPLEFT", 30, y)
+    raceLabel:SetText("Crossfaction BG Race")
 
     local raceDropdown = CreateFrame("Frame", "ChromiePVPTabRaceDropdown", parent, "UIDropDownMenuTemplate")
-    raceDropdown:SetPoint("TOPLEFT", raceHeader, "BOTTOMLEFT", -20, -22)
-    UIDropDownMenu_SetWidth(raceDropdown, 120)
+    raceDropdown:SetPoint("RIGHT", parent, "TOPRIGHT", -4, y - 2)
+    UIDropDownMenu_SetWidth(raceDropdown, 110)
     -- Function to get available races based on player's class, race, and gender
     local function GetAvailableRaces()
         local playerClass = select(2, UnitClass("player"))
@@ -512,47 +542,30 @@ function ChromiePVPTab:CreateCrossfactionSection(parent, yOffset)
         end
     end)
 
-    -- Set default value if not set or invalid
     local availableRaces = GetAvailableRaces()
-    if not ChromiePVPTabSettings.cfbgRace or not tContains(availableRaces, ChromiePVPTabSettings.cfbgRace) then
-        if #availableRaces > 0 then
-            ChromiePVPTabSettings.cfbgRace = availableRaces[1]
-        end
+    if ChromiePVPTabSettings.cfbgRace and not tContains(availableRaces, ChromiePVPTabSettings.cfbgRace) then
+        ChromiePVPTabSettings.cfbgRace = nil
     end
     if ChromiePVPTabSettings.cfbgRace then
         UIDropDownMenu_SetSelectedValue(raceDropdown, ChromiePVPTabSettings.cfbgRace)
+    else
+        UIDropDownMenu_SetText(raceDropdown, "Not set")
     end
 end
 
-function ChromiePVPTab:Create3v3SoloSection(parent)
-    local yOffset = -320 -- Adjusted to move higher
-    local header = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    header:SetPoint("TOPLEFT", parent, "TOPLEFT", 30, yOffset)
-    header:SetText("3v3 Solo Queue")
-    header:SetTextColor(1, 0.82, 0)
-    local desc = parent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    desc:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -5)
-    desc:SetText("3v3 matches with random teammates")
-    desc:SetTextColor(0.8, 0.8, 0.8)
-    local roleInfo = parent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    roleInfo:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -5)
-    roleInfo:SetTextColor(0.8, 0.8, 0.8)
-    local ratedButton = CreateFrame("Button", "Arena3v3SoloRatedQueueButton", parent, "UIPanelButtonTemplate")
-    ratedButton:SetSize(140, 22)
-    ratedButton:SetPoint("TOPLEFT", roleInfo, "BOTTOMLEFT", 0, -15)
-    ratedButton:SetText("3v3 Solo Rated")
-    ratedButton:SetScript("OnClick", function() ChromiePVPTab:QueueForArena("3v3solorated") end)
-    local unratedButton = CreateFrame("Button", "Arena3v3SoloUnratedQueueButton", parent, "UIPanelButtonTemplate")
-    unratedButton:SetSize(140, 22)
-    unratedButton:SetPoint("LEFT", ratedButton, "RIGHT", 10, 0)
-    unratedButton:SetText("3v3 Solo Unrated")
-    unratedButton:SetScript("OnClick", function() ChromiePVPTab:QueueForArena("3v3solounrated") end)
-end
-
 function ChromiePVPTab:HookTabClicks()
-    PVPParentFrameTab1:SetScript("OnClick", function() self:SetTab(1) end)
-    PVPParentFrameTab2:SetScript("OnClick", function() self:SetTab(2) end)
-    self.tab:SetScript("OnClick", function() self:SetTab(self.tabID) end)
+    PVPParentFrameTab1:SetScript("OnClick", function()
+        self:SetTab(1)
+        PlaySound("igCharacterInfoTab")
+    end)
+    PVPParentFrameTab2:SetScript("OnClick", function()
+        self:SetTab(2)
+        PlaySound("igCharacterInfoTab")
+    end)
+    self.tab:SetScript("OnClick", function()
+        self:SetTab(self.tabID)
+        PlaySound("igCharacterInfoTab")
+    end)
 end
 
 function ChromiePVPTab:QueueForArena(arenaType)
@@ -574,20 +587,18 @@ function ChromiePVPTab:Print(msg)
 end
 
 function ChromiePVPTab:ApplySavedSettings()
-    if ChromiePVPTabSettings.arenaAnnouncements then
-        SendChatMessage(".settings announcer arena on", "SAY")
-    else
-        SendChatMessage(".settings announcer arena off", "SAY")
+    local settings = ChromiePVPTabSettings
+
+    if settings.arenaAnnouncements ~= nil then
+        SendChatMessage(".settings announcer arena " .. (settings.arenaAnnouncements and "on" or "off"), "SAY")
     end
 
-    if ChromiePVPTabSettings.bgAnnouncements then
-        SendChatMessage(".settings announcer bg on", "SAY")
-    else
-        SendChatMessage(".settings announcer bg off", "SAY")
+    if settings.bgAnnouncements ~= nil then
+        SendChatMessage(".settings announcer bg " .. (settings.bgAnnouncements and "on" or "off"), "SAY")
     end
 
-    if ChromiePVPTabSettings.cfbgRace then
-        SendChatMessage(".cfbg race " .. ChromiePVPTabSettings.cfbgRace, "SAY")
+    if settings.cfbgRace then
+        SendChatMessage(".cfbg race " .. settings.cfbgRace, "SAY")
     end
 end
 
@@ -612,13 +623,13 @@ end]]
 
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
-eventFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT") -- For potential updates
+eventFrame:RegisterEvent("PLAYER_PVP_KILLS_CHANGED")
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_LOGIN" then
+        ChromiePVPTabSettings = ChromiePVPTabSettings or {}
         ChromiePVPTab:Initialize()
         ChromiePVPTab:ApplySavedSettings() -- Apply settings right after initialization.
-    elseif event == "UPDATE_MOUSEOVER_UNIT" and ChromiePVPTab.progressBar then
-        -- Update progress bar occasionally(might want to use a different event) 
+    elseif event == "PLAYER_PVP_KILLS_CHANGED" and ChromiePVPTab.frame and ChromiePVPTab.frame:IsShown() then
         ChromiePVPTab:UpdateProgressBar()
     end
 end)

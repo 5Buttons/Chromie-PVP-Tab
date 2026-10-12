@@ -64,7 +64,7 @@
         Uses only textures bundled in ChromiePVPTab/Texture/.
     -->
     <Frame name="ChromiePVPFrameTemplate" virtual="true">
-        <Size x="338" y="424"/>
+        <Size x="338" y="422"/>
         <Layers>
             <Layer level="BACKGROUND" textureSubLevel="-6">
                 <Texture name="$parentBg" file="Interface\AddOns\ChromiePVPTab\Texture\UI-Background-Rock" horizTile="true" vertTile="true">
